@@ -10,6 +10,9 @@ import uuid
 import sqlite3
 # 🧩 Route Imports (after defining app)
 from routes import register_user  # ✅ Your new route file
+from routes import login_user
+from routes import media_gallery
+
 
 app = FastAPI()
 
@@ -27,6 +30,8 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # 🧠 Include Routes
 app.include_router(register_user.router)
+app.include_router(login_user.router)
+app.include_router(media_gallery.router)
 
 # Allowed extensions
 PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
