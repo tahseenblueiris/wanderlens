@@ -1,0 +1,154 @@
+<!-- WanderLens - Secure Unified UI -->
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WanderLens</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.17/css/intlTelInput.css"/>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <style>
+    .drop-zone {
+      border: 2px dashed #ccc;
+      padding: 30px;
+      text-align: center;
+      color: #777;
+    }
+    .drop-zone.dragover {
+      border-color: #007bff;
+      background-color: #e9f5ff;
+    }
+    #uploadSection, #blogSection { display: none; }
+    .watermark-overlay::after {
+      content: 'toremovewatermark loginsignup';
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      font-size: 12px;
+      color: red;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 2px 5px;
+    }
+  </style>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#galleryTab">🖼️ Gallery</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#blogTab">📝 Blog</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#loginTab">🔐 Login</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#signupTab">🆕 Sign Up</button></li>
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="galleryTab">
+      <h3>Explore Media Gallery</h3>
+      <div class="row" id="mediaGalleryPublic"></div>
+    </div>
+
+    <div class="tab-pane fade" id="blogTab">
+      <div id="blogSection">
+        <form id="blogForm" class="row g-3">
+          <div class="col-md-12"><label>Title</label><input type="text" class="form-control" name="title" required /></div>
+          <div class="col-md-12"><label>Description</label><textarea class="form-control" name="description" required></textarea></div>
+          <div class="col-md-6"><label>Photo (optional)</label><input type="file" class="form-control" name="photo" accept="image/*"></div>
+          <div class="col-md-6"><label>Video (optional)</label><input type="file" class="form-control" name="video" accept="video/*"></div>
+          <div class="col-12"><button type="submit" class="btn btn-warning w-100">Publish Blog (🎁 bonus)</button></div>
+        </form>
+        <hr>
+        <div id="blogList"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="loginTab">
+      <form id="loginForm" class="row g-3">
+        <div class="col-md-6"><label>Email</label><input type="email" class="form-control" id="login-email" required /></div>
+        <div class="col-md-6"><label>Password</label><input type="password" class="form-control" id="login-password" required /></div>
+        <div class="col-12"><div class="g-recaptcha" data-sitekey="6LdZQBwrAAAAAKHR2s5fX-wuA6GGONS2QbfHYRqE"></div></div>
+        <div class="col-12"><button type="submit" class="btn btn-success w-100">Login</button></div>
+        <div class="col-12 text-end"><a href="#" id="forgotPasswordLink">Forgot Password?</a></div>
+        <div id="loginStatus" class="col-12"></div>
+      </form>
+    </div>
+
+    <div class="tab-pane fade" id="signupTab">
+      <form id="signupForm" class="row g-3">
+        <div class="col-md-6"><label>First Name</label><input class="form-control" required id="firstName"></div>
+        <div class="col-md-6"><label>Last Name</label><input class="form-control" required id="lastName"></div>
+        <div class="col-md-4"><label>Country</label><input class="form-control" required id="country"></div>
+        <div class="col-md-4"><label>State</label><input class="form-control" required id="state"></div>
+        <div class="col-md-4"><label>City</label><input class="form-control" required id="city"></div>
+        <div class="col-md-3"><label>Zip Code</label><input class="form-control" required id="zip"></div>
+        <div class="col-md-9"><label>Address</label><input class="form-control" required id="address"></div>
+        <div class="col-md-12"><label>Mobile Number</label><input class="form-control" required id="mobile"></div>
+        <div class="col-md-6"><label>Email</label><input class="form-control" type="email" required id="email"></div>
+        <div class="col-md-6"><label>Password</label><input class="form-control" type="password" required id="password"></div>
+        <div class="col-md-6"><label>Confirm Password</label><input class="form-control" type="password" required id="confirmPassword"></div>
+        <div class="col-12"><div class="g-recaptcha" data-sitekey="6LdZQBwrAAAAAKHR2s5fX-wuA6GGONS2QbfHYRqE"></div></div>
+        <div class="col-12"><button type="submit" class="btn btn-primary w-100">Sign Up</button></div>
+        <div class="col-12" id="signupStatus"></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="uploadSection">
+    <div class="d-flex justify-content-between align-items-center my-5">
+      <h2>📤 Upload Media</h2>
+      <button class="btn btn-dark" id="toggleDarkMode">🌙 Toggle Dark Mode</button>
+    </div>
+    <form id="uploadForm" class="row g-3" enctype="multipart/form-data">
+      <div class="col-md-6"><label>Title</label><input type="text" class="form-control" name="title" required></div>
+      <div class="col-md-6"><label>Tags</label><input type="text" class="form-control" name="tags" required></div>
+      <div class="col-12"><label>Description</label><textarea class="form-control" name="description" rows="2" required></textarea></div>
+      <div class="col-md-4"><label>Media Type</label><select class="form-select" name="media_type" required><option value="photo">Photo</option><option value="video">Video</option></select></div>
+      <div class="col-md-4"><label>File</label><div class="drop-zone" id="dropZone">📂 Drag & drop or click<input type="file" class="form-control mt-2" name="file" style="display:none;" required></div></div>
+      <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="watermark" id="addWatermark"><label class="form-check-label">Add Watermark</label></div></div>
+      <div class="col-12"><button type="submit" class="btn btn-primary w-100">Upload</button></div>
+    </form>
+    <hr class="my-5"/>
+    <h2>🖼️ Uploaded Media</h2>
+    <div id="tagFilters" class="mb-3"></div>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4" id="mediaGallery"></div>
+    <div class="text-center my-4"><button id="loadMoreBtn" class="btn btn-outline-primary" style="display: none;">Load More</button></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="text-center mt-5">
+    <p>Follow us on:</p>
+    <div class="d-flex justify-content-center gap-3">
+      <a href="#" target="_blank">Instagram</a>
+      <a href="#" target="_blank">Facebook</a>
+      <a href="#" target="_blank">Twitter</a>
+      <a href="#" target="_blank">YouTube</a>
+      <a href="#" target="_blank">LinkedIn</a>
+    </div>
+    <small class="text-muted d-block mt-2">&copy; 2025 WanderLens</small>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.17/js/intlTelInput.min.js"></script>
+<script>
+  const firebaseConfig = { apiKey: "AIzaSyBadEuICZIUmaZs3swNE3QCZ6VbY8ohGYk", authDomain: "wanderlens-6cdc6.firebaseapp.com", projectId: "wanderlens-6cdc6", storageBucket: "wanderlens-6cdc6.firebasestorage.app", messagingSenderId: "145127292553", appId: "1:145127292553:web:292ec970e966edfd34d058" };
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  auth.onAuthStateChanged(user => {
+    document.getElementById("uploadSection").style.display = user ? "block" : "none";
+    document.getElementById("blogSection").style.display = user ? "block" : "none";
+    if (user) loadMedia();
+  });
+</script>
+<script src="js/auth.js"></script>
+<script src="js/firebase-config.js"></script>
+<script>
+  const iti = window.intlTelInput(document.querySelector("#mobile"), {
+    initialCountry: "auto",
+    nationalMode: false,
+    geoIpLookup: cb => fetch('https://ipapi.co/json').then(res => res.json()).then(data => cb(data.country_code)).catch(() => cb("US")),
+    utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.17/js/utils.js"
+  });
+</script>
+</body>
+</html>

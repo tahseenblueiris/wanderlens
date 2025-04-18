@@ -1,3 +1,8 @@
+structure /wanderlens/backend/
+
+files : 
+
+(main.py)
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,25 +13,18 @@ import os
 import shutil
 import uuid
 import sqlite3
-# 🧩 Route Imports (after defining app)
-from routes import register_user  # ✅ Your new route file
 
 app = FastAPI()
 
-# 🔄 Middleware Setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or specify your frontend domain
+    allow_origins=["*"],  # Change to your frontend domain if needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 🔗 Static File Mount
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
-# 🧠 Include Routes
-app.include_router(register_user.router)
 
 # Allowed extensions
 PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
@@ -161,3 +159,93 @@ def delete_media(media_id: int):
 @app.get("/", response_class=HTMLResponse)
 def root():
     return "<h2>🌍 WanderLens Backend Running</h2><p>Use /upload/, /media/, and /delete/{id} endpoints</p>"
+
+
+
+
+(Model.py)
+from sqlalchemy import Column, Integer, String
+from .database import Base
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String)
+    email = Column(String, unique=True, index=True)
+    firebase_uid = Column(String, unique=True)
+
+
+
+(database.py)
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from contextlib import contextmanager
+
+# Define the DB URL (your password contains special characters, so it’s already correctly URL-encoded)
+DATABASE_URL = "mysql+mysqlconnector://root:Tanaz2411##@localhost/wanderlens"
+
+# Create SQLAlchemy engine and session
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base for all ORM models
+Base = declarative_base()
+
+# Dependency to get DB session in FastAPI
+def get_db():
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+(auth.py)
+from datetime import datetime, timedelta
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+SECRET_KEY = "wanderlenssupersecretkey"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password):
+    return pwd_context.hash(password)
+
+def verify_password(plain, hashed):
+    return pwd_context.verify(plain, hashed)
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+
+(schemas.py)
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class UserOut(BaseModel):
+    id: int
+    username: str
+    email: str
+
+    class Config:
+        orm_mode = True
+
+
+
+Other Folders in backend(media, uploads(photos, videos)), __pycache__
